@@ -70,8 +70,8 @@ public class Settings : MonoBehaviour
         }
     }
 
-    private WinEffects _winEffect;
-    public WinEffects WinEffect
+    private string _winEffect;
+    public string WinEffect
     {
         get { return _winEffect; }
         set
@@ -153,11 +153,11 @@ public class Settings : MonoBehaviour
         this._chipCountInLine = store.GetIntValue("ChipCountInLine", null, 3);
         this.FinalAnimationDurationSec = store.GetIntValue("FinalAnimationDuration", null, 10);
 		this.TapSoundType = store.GetIntValue("TapSoundType", null, 0);
+		this._winEffect = store.GetValue("WinEffect", null, "VanishStretch");
 
         this._chipColor = store.GetEnumValue<ChipColors>("ChipColor", null, ChipColors.Blue);
         this._chipShape = store.GetEnumValue<ChipShapes>("ChipShape", null, ChipShapes.Circle);
-        this._gameStyle = store.GetEnumValue<GameStyles>("GameStyle", null, GameStyles.Boy);
-        this._winEffect = store.GetEnumValue<WinEffects>("WinEffect", null, WinEffects.Firework);        
+        this._gameStyle = store.GetEnumValue<GameStyles>("GameStyle", null, GameStyles.Boy);        
 
         const bool kIsFinalAnimationEnabled = true;
         try

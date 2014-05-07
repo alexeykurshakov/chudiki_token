@@ -9,6 +9,8 @@ public class Game : MonoBehaviour
 	private UnityEngine.Color kBgColorBoyStyle = new Color(70f/255f, 89f/255f, 180f/255f);
 	private UnityEngine.Color kBgColorGirlStyle = new Color(184f/255f, 32f/255f, 161f/255f);
 
+	[SerializeField] private GameObject _effectsRoot;
+
 	[SerializeField] private tk2dSlicedSprite _background;
 
 	[SerializeField] private Chip _chipPrefab;
@@ -36,6 +38,8 @@ public class Game : MonoBehaviour
     private bool _isTouch;
 
     private Vector3 _touchPos;
+
+	private ParticleSystem _ps;
 
 	private void OnStyleApply()
 	{
@@ -70,6 +74,10 @@ public class Game : MonoBehaviour
         _isTouch = false;
     }
 
+	private float _marginX;
+	private float _marginY;
+
+
     private void OnGridCreation()
     {
         this.Reset();
@@ -79,10 +87,10 @@ public class Game : MonoBehaviour
 		var screenHeight = (float)768;//Screen.height;
 
         var paddingX = screenWidth/(gameSettings.ChipCountInLine + 1);
-        var marginX = paddingX;
+        _marginX = paddingX;
 
         var paddingY = screenHeight / (gameSettings.LinesCount + 1);
-        var marginY = paddingY;
+        _marginY = paddingY;
 
         _chips = new Chip[gameSettings.ChipCountInLine, gameSettings.LinesCount];
 
@@ -100,9 +108,7 @@ public class Game : MonoBehaviour
         {
             for (var x = 0; x < gameSettings.ChipCountInLine; ++x)
             {
-				//Debug.Log (string.Format ("Create a chip: x({0}), y({1})", x, y));
-
-                var offset = new Vector2(marginX+x*paddingX, -marginY-y*paddingY);
+				var offset = new Vector2(_marginX+x*paddingX, -_marginY-y*paddingY);
                 var chip = Chip.Create(this._chipPrefab.gameObject, offset);
 
                 chip.gameObject.SetActive(true);
@@ -122,6 +128,23 @@ public class Game : MonoBehaviour
 
         this.OnGridCreation(); 
         this.OnStyleApply();
+	}
+
+	IEnumerator Win() 
+	{
+		yield return new WaitForSeconds(4.0f);
+		SoundManager.Instance.GetSound(SoundManager.Sounds.Fanfary).Play();
+	}
+
+	private ParticleSystem GetCurrentEffect()
+	{
+		var newPs = _effectsRoot.transform.FindChild(Settings.Instance.WinEffect).gameObject.GetComponent<EffectContainer>().Play;	
+		if (_ps != null && _ps != newPs)
+		{
+			_ps.gameObject.SetActive(false);
+		}
+		_ps = newPs;
+		return _ps;
 	}
 
     private void OnTouch()
@@ -153,9 +176,16 @@ public class Game : MonoBehaviour
         _chips[_currentStep++ % gameSettings.ChipCountInLine, currentLine].State = Chip.States.Normal;
 
         var newLine = _currentStep/gameSettings.ChipCountInLine;
-
+		
         if (newLine != currentLine)
         {
+			var ps = GetCurrentEffect();
+			ps.GetComponent<tk2dCameraAnchor>().AnchorOffsetPixels = new Vector2(gameSettings.ChipCountInLine * _marginX, -newLine * _marginY);
+			ps.gameObject.SetActive(true);		
+			ps.Play();			
+			SoundManager.Instance.GetSound(SoundManager.Sounds.IskorkiDev).Play();
+
+		
             for (var x = 0; x < gameSettings.ChipCountInLine; ++x)
             {
                 _chips[x, currentLine].State = Chip.States.Dark;
@@ -163,7 +193,7 @@ public class Game : MonoBehaviour
 
 			if (_currentStep == gameSettings.ChipCountInLine * gameSettings.LinesCount)
 			{
-			    SoundManager.Instance.GetSound(SoundManager.Sounds.Fanfary).Play();			    
+				this.StartCoroutine("Win");
 			}
         }      
     }
@@ -171,9 +201,7 @@ public class Game : MonoBehaviour
     private void OnSwipe(Vector2 swipeDirection)
     {
 		if (_currentStep == 0)
-		{
 			return;
-		}
 		        
 		SoundManager.Instance.GetSound(string.Format("Swipe{0}", Random.Range(1, 4))).Play();
 

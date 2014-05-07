@@ -88,7 +88,7 @@ public abstract class SliderController : MonoBehaviour
 
 	protected void OnSlidedValueChanged()
     {
-		if (!this._isStarted || Mathf.Abs(this.Slider.Value - this.SliderValue) < 0.001f)
+		if (!this._isStarted || this.Slider.Value.IsEqual(this.SliderValue, 0.001f))
             return;
 
 		var diff = this.Slider.Value * (MaxSliderValue - MinSliderValue);

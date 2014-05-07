@@ -40,6 +40,8 @@ public class SoundManager : MonoBehaviour
 		TapKvak4,
 		TapKvak5,
 		TapKvak6,	
+
+		IskorkiDev,
 	}
 	
 	private AudioSource[] _sounds;
